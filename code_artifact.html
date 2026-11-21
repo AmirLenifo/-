@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شکرستانِ ادب | چالش شعر و ضرب‌المثل فارسی</title>
+    <!-- بارگذاری فونت وزیرمتن از گوگل فونت -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <!-- بارگذاری Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- بارگذاری Tone.js برای افکت‌های صوتی ملایم بدون فایل خارجی -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* تنظیمات پایه و فونت فارسی */
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #091d2c;
+            color: #fdf8ee;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* الگوی کاشی‌کاری ظریف ایرانی در پس‌زمینه */
+        .persian-tile-bg {
+            background-color: #0b2438;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.12) 2px, transparent 2.5px),
+                radial-gradient(circle at 0% 0%, rgba(217, 119, 6, 0.10) 3px, transparent 3.5px),
+                radial-gradient(circle at 100% 100%, rgba(217, 119, 6, 0.10) 3px, transparent 3.5px),
+                linear-gradient(45deg, rgba(13, 148, 136, 0.05) 25%, transparent 25%, transparent 75%, rgba(13, 148, 136, 0.05) 75%),
+                linear-gradient(-45deg, rgba(13, 148, 136, 0.05) 25%, transparent 25%, transparent 75%, rgba(13, 148, 136, 0.05) 75%);
+            background-size: 48px 48px;
+            background-position: 0 0, 24px 24px, 24px 24px, 0 0, 0 0;
+        }
+
+        /* قاب طلایی و فیروزه‌ای الهام‌گرفته از تذهیب */
+        .persian-card {
+            background: linear-gradient(160deg, rgba(16, 46, 70, 0.95) 0%, rgba(10, 31, 48, 0.98) 100%);
+            border: 2px solid rgba(245, 158, 11, 0.45);
+            box-shadow: 
+                0 20px 40px -15px rgba(0, 0, 0, 0.7),
+                inset 0 0 25px rgba(20, 184, 166, 0.12);
+            backdrop-filter: blur(10px);
+        }
+
+        /* استایل دکمه‌های سه‌بعدی بازی */
+        .game-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .game-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .game-btn:active:not(:disabled) {
+            transform: translateY(2px);
+        }
+
+        .gold-gradient-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 5px 0 #92400e, 0 10px 20px rgba(217, 119, 6, 0.35);
+            color: #fffbeb;
+        }
+
+        .gold-gradient-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            box-shadow: 0 7px 0 #92400e, 0 14px 24px rgba(217, 119, 6, 0.45);
+        }
+
+        .gold-gradient-btn:active:not(:disabled) {
+            box-shadow: 0 2px 0 #92400e, 0 5px 10px rgba(217, 119, 6, 0.35);
+        }
+
+        /* استایل گزینه‌های پاسخ */
+        .option-btn {
+            background: rgba(19, 58, 87, 0.85);
+            border: 1.5px solid rgba(45, 212, 191, 0.3);
+            box-shadow: 0 4px 0 rgba(7, 25, 39, 0.9);
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(23, 73, 108, 0.95);
+            border-color: #fbbf24;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 rgba(7, 25, 39, 0.9);
+        }
+
+        /* وضعیت‌های پاسخ درست و غلط */
+        .option-correct {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            border-color: #fde047 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 0 #064e3b, 0 0 20px rgba(16, 185, 129, 0.45) !important;
+            animation: pulseSuccess 0.45s ease;
+        }
+
+        .option-wrong {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%) !important;
+            border-color: #fca5a5 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 0 #7f1d1d !important;
+            animation: shakeError 0.4s ease;
+        }
+
+        @keyframes pulseSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.025); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            50% { transform: translateX(6px); }
+            75% { transform: translateX(-4px); }
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(2deg); }
+        }
+
+        .floating-emblem {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.35s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="persian-tile-bg min-h-screen flex flex-col items-center justify-center p-3 sm:p-6">
+
+    <!-- محفظه اصلی بازی -->
+    <main class="w-full max-w-2xl mx-auto">
+        
+        <!-- نوار بالای صفحه (دکمه صدا و عنوان کوچک در حین بازی) -->
+        <div class="flex items-center justify-between mb-3 px-1">
+            <div class="flex items-center gap-2 text-amber-300/90 text-xs sm:text-sm font-semibold">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+                <span>شکرستانِ ادب</span>
+            </div>
+            <button id="sound-toggle-btn" type="button" onclick="toggleSound()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-teal-500/30 text-teal-200 hover:text-amber-300 hover:border-amber-400/50 text-xs sm:text-sm transition cursor-pointer">
+                <span id="sound-icon">🔊</span>
+                <span id="sound-text">صدا روشن</span>
+            </button>
+        </div>
+
+        <!-- ==================== ۱. صفحه شروع بازی ==================== -->
+        <section id="start-screen" class="persian-card rounded-3xl p-6 sm:p-10 text-center fade-in-up relative overflow-hidden">
+            <!-- تزئین گوشه‌های کارت با SVG شمسه ایرانی -->
+            <div class="flex justify-center mb-4">
+                <div class="floating-emblem w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-teal-500/20 to-amber-500/20 border-2 border-amber-400/60 flex items-center justify-center shadow-lg">
+                    <!-- آیکون SVG شمسه و قلم‌دان -->
+                    <svg class="w-12 h-12 sm:w-14 sm:h-14 text-amber-400" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M32 4L38.5 16.5L52 12L47.5 25.5L60 32L47.5 38.5L52 52L38.5 47.5L32 60L25.5 47.5L12 52L16.5 38.5L4 32L16.5 25.5L12 12L25.5 16.5L32 4Z" stroke="currentColor" stroke-width="2.5" fill="rgba(245, 158, 11, 0.15)"/>
+                        <circle cx="32" cy="32" r="10" stroke="#2dd4bf" stroke-width="2.5" fill="rgba(20, 184, 166, 0.25)"/>
+                        <circle cx="32" cy="32" r="3.5" fill="#fbbf24"/>
+                    </svg>
+                </div>
+            </div>
+
+            <h1 class="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-l from-amber-300 via-yellow-200 to-teal-300 mb-2 leading-relaxed">
+                شکرستانِ ادب
+            </h1>
+            <p class="text-teal-200/90 text-sm sm:text-lg font-medium mb-6">
+                چالش سرعتی ضرب‌المثل‌ها، اشعار ماندگار و قافیه‌های فارسی
+            </p>
+
+            <!-- کارت‌های معرفی سه بخش چالش -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 text-right">
+                <div class="bg-slate-900/60 border border-teal-500/25 rounded-2xl p-3.5">
+                    <div class="text-amber-400 font-bold text-sm mb-1">📜 تکمیل مصرع</div>
+                    <p class="text-xs text-slate-300 leading-relaxed">ابیات ناب حافظ، سعدی، مولانا و فردوسی را کامل کنید.</p>
+                </div>
+                <div class="bg-slate-900/60 border border-teal-500/25 rounded-2xl p-3.5">
+                    <div class="text-teal-300 font-bold text-sm mb-1">🏺 ضرب‌المثل‌ها</div>
+                    <p class="text-xs text-slate-300 leading-relaxed">پندها و مثل‌های شیرین و اصیل ایرانی را به خاطر بیاورید.</p>
+                </div>
+                <div class="bg-slate-900/60 border border-teal-500/25 rounded-2xl p-3.5">
+                    <div class="text-amber-300 font-bold text-sm mb-1">🎶 قافیه‌سنجی</div>
+                    <p class="text-xs text-slate-300 leading-relaxed">واژه هم‌قافیه و هم‌آهنگ با بیت را در زمان طلایی بیابید.</p>
+                </div>
+            </div>
+
+            <!-- نمایش رکورد ذخیره شده -->
+            <div class="inline-flex items-center gap-3 bg-amber-500/10 border border-amber-400/40 rounded-2xl px-5 py-2.5 mb-7">
+                <span class="text-xl">🏆</span>
+                <div class="text-right">
+                    <div class="text-[11px] text-amber-200/80">بهترین رکورد شما</div>
+                    <div id="start-high-score" class="text-lg sm:text-xl font-extrabold text-amber-300">۰ امتیاز</div>
+                </div>
+            </div>
+
+            <!-- انتخاب حالت بازی -->
+            <div class="mb-6">
+                <label class="block text-xs text-teal-200/80 mb-2">حالت چالش را انتخاب کنید:</label>
+                <div class="flex flex-wrap justify-center gap-2" id="mode-selector">
+                    <button type="button" data-mode="all" class="mode-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-teal-600 text-white border border-teal-300 shadow cursor-pointer transition">
+                        ✨ ترکیبی (همه موارد)
+                    </button>
+                    <button type="button" data-mode="poetry" class="mode-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/80 text-slate-300 border border-slate-600 hover:border-amber-400 cursor-pointer transition">
+                        📜 شعر فارسی
+                    </button>
+                    <button type="button" data-mode="proverb" class="mode-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/80 text-slate-300 border border-slate-600 hover:border-amber-400 cursor-pointer transition">
+                        🏺 ضرب‌المثل
+                    </button>
+                    <button type="button" data-mode="rhyme" class="mode-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/80 text-slate-300 border border-slate-600 hover:border-amber-400 cursor-pointer transition">
+                        🎶 قافیه
+                    </button>
+                </div>
+            </div>
+
+            <!-- دکمه شروع بازی -->
+            <button type="button" onclick="startGame()" class="game-btn gold-gradient-btn w-full sm:w-auto px-10 py-4 rounded-2xl text-lg sm:text-xl font-black tracking-wide cursor-pointer">
+                شروع بازی ✨
+            </button>
+        </section>
+
+        <!-- ==================== ۲. صفحه اصلی بازی ==================== -->
+        <section id="game-screen" class="hidden persian-card rounded-3xl p-5 sm:p-8 fade-in-up">
+            
+            <!-- نوار وضعیت بالا: جان‌ها (انار طلایی)، کمبو و امتیاز -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-teal-500/25">
+                
+                <!-- جان‌ها (۳ انار) -->
+                <div class="flex items-center gap-1.5 bg-slate-900/70 px-3 py-1.5 rounded-2xl border border-rose-500/30" title="جان‌های باقی‌مانده">
+                    <span class="text-xs text-slate-300 ml-1">جان:</span>
+                    <div id="lives-container" class="flex items-center gap-1 text-lg sm:text-xl">
+                        <!-- با جاوااسکریپت پر می‌شود -->
+                    </div>
+                </div>
+
+                <!-- زنجیره پاسخ درست (Combo) -->
+                <div id="combo-badge" class="flex items-center gap-1.5 bg-amber-500/15 border border-amber-400/40 px-3.5 py-1.5 rounded-2xl transition-transform">
+                    <span class="text-base">🔥</span>
+                    <span class="text-xs sm:text-sm font-bold text-amber-300">زنجیره: <span id="combo-count">۰</span></span>
+                </div>
+
+                <!-- امتیاز فعلی -->
+                <div class="flex items-center gap-2 bg-teal-950/90 border border-teal-400/40 px-4 py-1.5 rounded-2xl">
+                    <span class="text-xs text-teal-300">امتیاز:</span>
+                    <span id="current-score" class="text-lg sm:text-xl font-black text-amber-300">۰</span>
+                </div>
+            </div>
+
+            <!-- نوار پیشرفت زمان (Timer Bar) -->
+            <div class="mb-5">
+                <div class="flex justify-between items-center text-xs mb-1.5">
+                    <span id="question-category-badge" class="px-3 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-400/30 font-semibold">
+                        تکمیل مصرع
+                    </span>
+                    <span class="text-slate-300 font-medium">
+                        زمان باقی‌مانده: <span id="timer-seconds" class="text-amber-300 font-bold">۱۵</span> ثانیه
+                    </span>
+                </div>
+                <div class="w-full h-3 bg-slate-900/90 rounded-full overflow-hidden border border-slate-700/80 p-0.5">
+                    <div id="timer-bar" class="h-full rounded-full bg-gradient-to-l from-teal-400 via-amber-400 to-rose-500 transition-all duration-100" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- جعبه صورت سوال / بیت / ضرب‌المثل -->
+            <div id="question-box" class="bg-slate-900/75 border border-amber-400/30 rounded-2xl p-5 sm:p-7 mb-5 text-center relative shadow-inner">
+                <p id="question-instruction" class="text-xs sm:text-sm text-teal-300/90 mb-2 font-medium">
+                    مصرع دوم این بیت را انتخاب کنید:
+                </p>
+                <h2 id="question-text" class="text-lg sm:text-2xl font-bold text-amber-50 leading-loose">
+                    در حال بارگذاری...
+                </h2>
+            </div>
+
+            <!-- ۴ گزینه پاسخ -->
+            <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <!-- دکمه‌های گزینه توسط جاوااسکریپت ساخته می‌شوند -->
+            </div>
+
+            <!-- کادر بازخورد آموزشی پس از پاسخ -->
+            <div id="feedback-box" class="hidden rounded-2xl p-4 border transition-all duration-300">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <div id="feedback-title" class="font-extrabold text-sm sm:text-base mb-1">آفرین! پاسخ درست بود</div>
+                        <p id="feedback-note" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
+                    </div>
+                    <button type="button" id="next-btn" onclick="nextQuestion()" class="shrink-0 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow cursor-pointer transition">
+                        بعدی ◀
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== ۳. صفحه پایان بازی (Game Over) ==================== -->
+        <section id="gameover-screen" class="hidden persian-card rounded-3xl p-6 sm:p-10 text-center fade-in-up">
+            <div class="text-5xl sm:text-6xl mb-3">🏺</div>
+            <h2 id="gameover-title" class="text-2xl sm:text-3xl font-black text-amber-300 mb-2">
+                پایانِ این دور از شکرستان!
+            </h2>
+            <p id="gameover-subtitle" class="text-sm sm:text-base text-teal-200/90 mb-6">
+                سخنِ نغز و شیرین همیشه ماندگار است. عملکرد شما در این دور:
+            </p>
+
+            <!-- نشان رکورد جدید (در صورت شکستن رکورد) -->
+            <div id="new-record-banner" class="hidden mb-5 py-2 px-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 border border-amber-300 text-amber-200 font-bold text-sm animate-bounce">
+                🎉 تبریک! رکورد جدیدی ثبت کردید! 🎉
+            </div>
+
+            <!-- آمار نهایی -->
+            <div class="grid grid-cols-3 gap-2.5 sm:gap-4 mb-7">
+                <div class="bg-slate-900/75 border border-amber-400/30 rounded-2xl p-3.5">
+                    <div class="text-xs text-slate-400 mb-1">امتیاز نهایی</div>
+                    <div id="final-score" class="text-xl sm:text-2xl font-black text-amber-300">۰</div>
+                </div>
+                <div class="bg-slate-900/75 border border-teal-400/30 rounded-2xl p-3.5">
+                    <div class="text-xs text-slate-400 mb-1">بهترین رکورد</div>
+                    <div id="final-high-score" class="text-xl sm:text-2xl font-black text-teal-300">۰</div>
+                </div>
+                <div class="bg-slate-900/75 border border-emerald-400/30 rounded-2xl p-3.5">
+                    <div class="text-xs text-slate-400 mb-1">پاسخ‌های درست</div>
+                    <div id="final-correct-count" class="text-xl sm:text-2xl font-black text-emerald-300">۰</div>
+                </div>
+            </div>
+
+            <!-- دکمه‌های پایان بازی -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button type="button" onclick="startGame()" class="game-btn gold-gradient-btn w-full sm:w-auto px-8 py-3.5 rounded-2xl text-base sm:text-lg font-black cursor-pointer">
+                    بازی دوباره 🔄
+                </button>
+                <button type="button" onclick="returnToMenu()" class="game-btn w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-teal-200 border border-teal-500/30 text-sm sm:text-base font-bold cursor-pointer">
+                    بازگشت به صفحه اصلی
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        /**
+         * پایگاه داده جامع سوالات ادبیات، اشعار، ضرب‌المثل‌ها و قافیه‌های فارسی
+         * شامل ۳۲ سوال اصیل و متنوع در ۳ دسته‌بندی: poetry, proverb, rhyme
+         */
+        const QUESTIONS_DB = [
+            // --- دسته اول: تکمیل مصرع دوم اشعار معروف فارسی ---
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت ماندگار را انتخاب کنید:',
+                question: 'بنی‌آدم اعضای یکدیگرند',
+                options: [
+                    'که در آفرینش ز یک گوهرند',
+                    'که با هم همیشه برابر شوند',
+                    'ز خاک و ز باد و ز آتش سرند',
+                    'به وقت نیاز یار یکدیگرند'
+                ],
+                correctIndex: 0,
+                note: 'از گلستانِ سعدی شیرازی — این شعر بر سردر سازمان ملل متحد نیز نقش بسته است.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت از حافظ را کامل کنید:',
+                question: 'الا یا ایها الساقی ادر کاساً و ناولها',
+                options: [
+                    'که عشق آسان نمود اول ولی افتاد مشکل‌ها',
+                    'شب تاریک و بیم موج و گردابی چنین هایل',
+                    'به می سجاده رنگین کن گرت پیر مغان گوید',
+                    'همه کارم ز خودکامی به بدنامی کشید آخر'
+                ],
+                correctIndex: 0,
+                note: 'نخستین غزل دیوان خواجه شمس‌الدین محمد حافظ شیرازی.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت حماسی شاهنامه را انتخاب کنید:',
+                question: 'توانا بود هر که دانا بود',
+                options: [
+                    'ز دانش دل پیر برنا بود',
+                    'به گیتی همیشه توانا بود',
+                    'که نادان به هر جا شکیبا بود',
+                    'ز گنج و ز گوهر مبرا بود'
+                ],
+                correctIndex: 0,
+                note: 'از شاهنامه حکیم ابوالقاسم فردوسی، در ستایش خرد و دانایی.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت از مثنوی معنوی را بیابید:',
+                question: 'بشنو از نی چون حکایت می‌کند',
+                options: [
+                    'از جدایی‌ها شکایت می‌کند',
+                    'قصه عشق و محبت می‌کند',
+                    'راز دل را با تو صحبت می‌کند',
+                    'یاد ایام سعادت می‌کند'
+                ],
+                correctIndex: 0,
+                note: 'آغازگر دفتر اول مثنوی معنوی اثر مولانا جلال‌الدین بلخی.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت از حافظ را کامل کنید:',
+                question: 'درخت دوستی بنشان که کام دل به بار آرد',
+                options: [
+                    'نهال دشمنی برکن که رنج بی‌شمار آرد',
+                    'نسیم صبحدم بویی ز کوی دوستدار آرد',
+                    'بهار زندگی هر دم گل و لاله به بار آرد',
+                    'چراغ مهر روشن کن که نور آشکار آرد'
+                ],
+                correctIndex: 0,
+                note: 'غزلیات حافظ — دعوت به مهرورزی و پرهیز از کینه‌توزی.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت از سعدی را انتخاب کنید:',
+                question: 'عبادت به جز خدمت خلق نیست',
+                options: [
+                    'به تسبیح و سجاده و دلق نیست',
+                    'به گفتار شیرین و نطق نیست',
+                    'به خلوت نشستن ز خلق نیست',
+                    'به زر و به سیم و به ملک نیست'
+                ],
+                correctIndex: 0,
+                note: 'از بوستانِ سعدی شیرازی — درباره ارزش خدمت به مردم.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت عارفانه از مولانا را کامل کنید:',
+                question: 'هر کسی کو دور ماند از اصل خویش',
+                options: [
+                    'باز جوید روزگار وصل خویش',
+                    'می‌کند اندیشه در احوال خویش',
+                    'می‌رود راهی به سوی شهر خویش',
+                    'یاد آرد از گذشته پیش خویش'
+                ],
+                correctIndex: 0,
+                note: 'از نی‌نامه مثنوی معنوی مولانا.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت از فردوسی را انتخاب کنید:',
+                question: 'چو ایران نباشد تن من مباد',
+                options: [
+                    'در این بوم و بر زنده یک تن مباد',
+                    'به گیتی کسی شاد و روشن مباد',
+                    'به دشت و دمن سرو و سوسن مباد',
+                    'به میدان نبردی چنین فن مباد'
+                ],
+                correctIndex: 0,
+                note: 'از شاهنامه فردوسی — نماد میهن‌دوستی در ادبیات فارسی.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت از پروین اعتصامی را کامل کنید:',
+                question: 'گوهر خود را هویدا کن کمال این است و بس',
+                options: [
+                    'خویش را در خویش پیدا کن کمال این است و بس',
+                    'دل ز قید غم رها کن کمال این است و بس',
+                    'خدمت خلق خدا کن کمال این است و بس',
+                    'عشق را در دل بنا کن کمال این است و بس'
+                ],
+                correctIndex: 0,
+                note: 'از دیوان اشعار پروین اعتصامی، شاعر نامدار معاصر.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت معروف از سعدی را انتخاب کنید:',
+                question: 'نابرده رنج گنج میسر نمی‌شود',
+                options: [
+                    'مزد آن گرفت جان برادر که کار کرد',
+                    'هر کس که تخم کاشت به آخر درو نکرد',
+                    'بی‌سعی و کوشش کار کسی پرثمر نشد',
+                    'در راه عشق پای کسی بی‌خطر نشد'
+                ],
+                correctIndex: 0,
+                note: 'از مواعظ سعدی شیرازی — در نکوهش تنبلی و ستایش تلاش.'
+            },
+            {
+                type: 'poetry',
+                categoryLabel: '📜 تکمیل مصرع شعر',
+                instruction: 'مصرع دوم این بیت از حافظ را کامل کنید:',
+                question: 'مزرع سبز فلک دیدم و داس مه نو',
+                options: [
+                    'یادم از کشته خویش آمد و هنگام درو',
+                    'چشمم از نور ستاره شد پر از پرتو نو',
+                    'گفتم ای دل به ره عشق و محبت بدو',
+                    'ابر باران بهار آمد و شد فصل درو'
+                ],
+                correctIndex: 0,
+                note: 'غزلیات حافظ — تشبیه زیبای آسمان به مزرعه و هلال ماه به داس.'
+            },
+
+            // --- دسته دوم: ضرب‌المثل‌های اصیل ایرانی ---
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'ادامه این ضرب‌المثل معروف را کامل کنید:',
+                question: 'با یک گل ...',
+                options: [
+                    'بهار نمی‌شود',
+                    'باغ ساخته نمی‌شود',
+                    'عطر نمی‌پیچد',
+                    'زمستان نمی‌رود'
+                ],
+                correctIndex: 0,
+                note: 'کنایه از اینکه یک نشانه کوچک یا یک نفر به تنهایی تغییر بزرگ ایجاد نمی‌کند.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'ادامه این ضرب‌المثل شیرین فارسی را انتخاب کنید:',
+                question: 'قطره قطره جمع گردد ...',
+                options: [
+                    'وانگهی دریا شود',
+                    'تا که رود جاری شود',
+                    'چشمه ساری وا شود',
+                    'باغ ما زیبا شود'
+                ],
+                correctIndex: 0,
+                note: 'تأکید بر اثرگذاری پس‌انداز، صبر و تلاش‌های پیوسته و کوچک.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'این ضرب‌المثل اصیل را کامل کنید:',
+                question: 'از تو حرکت ...',
+                options: [
+                    'از خدا برکت',
+                    'از باد سرعت',
+                    'از دوست همت',
+                    'از چرخ قدرت'
+                ],
+                correctIndex: 0,
+                note: 'یعنی انسان باید تلاش و قدم اول را بردارد تا یاری خداوند شامل حالش شود.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'ادامه این ضرب‌المثل قدیمی را بیابید:',
+                question: 'کوه به کوه نمی‌رسد ...',
+                options: [
+                    'آدم به آدم می‌رسد',
+                    'ابر به باران می‌رسد',
+                    'رود به دریا می‌رسد',
+                    'باد به صحرا می‌رسد'
+                ],
+                correctIndex: 0,
+                note: 'کنایه از اینکه انسان‌ها دیر یا زود دوباره یکدیگر را ملاقات می‌کنند.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'جای خالی در این ضرب‌المثل را پر کنید:',
+                question: 'پایت را به اندازه ... دراز کن.',
+                options: [
+                    'گلیمت',
+                    'اتاقَت',
+                    'فرشَت',
+                    'خانه‌ات'
+                ],
+                correctIndex: 0,
+                note: 'پند به اینکه هر کس باید متناسب با توان مالی و امکانات خود خرج کند.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'ادامه این ضرب‌المثل پرکاربرد را انتخاب کنید:',
+                question: 'جوجه را ... می‌شمارند.',
+                options: [
+                    'آخر پاییز',
+                    'اول بهار',
+                    'نیمه تابستان',
+                    'صبح زود'
+                ],
+                correctIndex: 0,
+                note: 'یعنی درباره نتیجه یک کار باید پس از پایان کامل آن قضاوت کرد.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'این ضرب‌المثل فارسی را تکمیل کنید:',
+                question: 'چراغی که به خانه رواست ...',
+                options: [
+                    'به مسجد حرام است',
+                    'به کوچه خطاست',
+                    'به همسایه جفاست',
+                    'به بازار سزاست'
+                ],
+                correctIndex: 0,
+                note: 'یعنی پیش از بخشش به دیگران، ابتدا باید نیاز خانواده و نزدیکان خود را برطرف کرد.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'ادامه این ضرب‌المثل معروف را کامل کنید:',
+                question: 'تا نباشد چیزکی ...',
+                options: [
+                    'مردم نگویند چیزها',
+                    'پیدا نگردد رازها',
+                    'روشن نگردد حرف‌ها',
+                    'برپا نگردد غوغایی'
+                ],
+                correctIndex: 0,
+                note: 'کنایه از اینکه شایعات و سخنان مردم معمولاً بی‌اساس و بی‌دلیل نیست.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'جای خالی را با واژه درست پر کنید:',
+                question: 'دیوار موش دارد، موش هم ... دارد.',
+                options: [
+                    'گوش',
+                    'هوش',
+                    'چشم',
+                    'لانه'
+                ],
+                correctIndex: 0,
+                note: 'هشدار برای احتیاط در بیان رازها و سخنان محرمانه در هر مکان.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'این ضرب‌المثل دلنشین را تکمیل کنید:',
+                question: 'هر که بامش بیش ...',
+                options: [
+                    'برفش بیشتر',
+                    'بادش تندتر',
+                    'آفتابش گرم‌تر',
+                    'دیوارش بلندتر'
+                ],
+                correctIndex: 0,
+                note: 'یعنی هر کس دارایی، مقام یا مسئولیت بیشتری داشته باشد، دردسر و دغدغه‌اش هم بیشتر است.'
+            },
+            {
+                type: 'proverb',
+                categoryLabel: '🏺 ضرب‌المثل ایرانی',
+                instruction: 'ادامه این ضرب‌المثل فارسی را انتخاب کنید:',
+                question: 'ماهی را هر وقت از آب بگیری ...',
+                options: [
+                    'تازه است',
+                    'زنده است',
+                    'زیباست',
+                    'بزرگ است'
+                ],
+                correctIndex: 0,
+                note: 'یعنی برای شروع یک کار نیک و جبران گذشته هیچ‌وقت دیر نیست.'
+            },
+
+            // --- دسته سوم: تشخیص واژه هم‌قافیه مناسب ---
+            {
+                type: 'rhyme',
+                categoryLabel: '🎶 قافیه‌سنجی',
+                instruction: 'کدام واژه با کلمه «مهتاب» هم‌قافیه و هم‌وزن است؟',
+                question: 'شبِ روشن و نورِ «مهتاب» ...',
+                options: [
+                    'شاداب',
+                    'آسمان',
+                    'ستاره',
+                    'نسیم'
+                ],
+                correctIndex: 0,
+                note: '«مهتاب» و «شاداب» هر دو در مصوت «ا» و حرف روی «ب» مشترک‌اند.'
+            },
+            {
+                type: 'rhyme',
+                categoryLabel: '🎶 قافیه‌سنجی',
+                instruction: 'کدام واژه قافیه درستی برای تکمیل این بیت است؟',
+                question: 'چو آید بهار و شود دشت سبز / بخواند به شاخه درختان ...',
+                options: [
+                    'تذرو (و هم‌قافیه با ابر و صبر)',
+                    'گلستان',
+                    'شکوفه',
+                    'پرنده'
+                ],
+                correctIndex: 0,
+                note: 'در قافیه‌سنجی کلاسیک، هم‌آوایی حروف پایانی (سبز / تذرو در وزن و آهنگ) مدنظر است.'
+            },
+            {
+                type: 'rhyme',
+                categoryLabel: '🎶 قافیه‌سنجی',
+                instruction: 'واژه هم‌قافیه با «گلستان» را انتخاب کنید:',
+                question: 'به فصل بهاران در این «گلستان» ...',
+                options: [
+                    'بهاران',
+                    'شکوفه',
+                    'پروانه',
+                    'چمنزار'
+                ],
+                correctIndex: 0,
+                note: '«گلستان» و «بهاران» در پسوند «ـان» هم‌قافیه هستند.'
+            },
+            {
+                type: 'rhyme',
+                categoryLabel: '🎶 قافیه‌سنجی',
+                instruction: 'کدام واژه با «آفتاب» هم‌قافیه است؟',
+                question: 'بتاب ای فروزنده «آفتاب» ...',
+                options: [
+                    'سحاب (ابر)',
+                    'خورشید',
+                    'سپیده',
+                    'روشنی'
+                ],
+                correctIndex: 0,
+                note: '«آفتاب» و «سحاب» (به معنی ابر) از قافیه‌های بسیار رایج در شعر کهن فارسی هستند.'
+            },
+            {
+                type: 'rhyme',
+                categoryLabel: '🎶 قافیه‌سنجی',
+                instruction: 'واژه هم‌قافیه با «شیرین» را برای پایان مصرع بیابید:',
+                question: 'سخن‌های سعدی بود بس «شیرین» ...',
+                options: [
+                    'دیرین',
+                    'زیبا',
+                    'دلکش',
+                    'ماندگار'
+                ],
+                correctIndex: 0,
+                note: '«شیرین» و «دیرین» قافیه کامل و بسیار خوش‌آهنگ می‌سازند.'
+            },
+            {
+                type: 'rhyme',
+                categoryLabel: '🎶 قافیه‌سنجی',
+                instruction: 'کدام واژه با «کاروان» هم‌قافیه است؟',
+                question: 'به سوی دیارِ کهن «کاروان» ...',
+                options: [
+                    'ساربان',
+                    'مسافر',
+                    'بیابان',
+                    'جاده'
+                ],
+                correctIndex: 0,
+                note: '«کاروان» و «ساربان» هم از نظر معنایی و هم از نظر قافیه بسیار به هم نزدیک‌اند.'
+            },
+            {
+                type: 'rhyme',
+                categoryLabel: '🎶 قافیه‌سنجی',
+                instruction: 'واژه هم‌قافیه با «دریا» را انتخاب کنید:',
+                question: 'به‌سانِ خروشیدنِ موجِ «دریا» ...',
+                options: [
+                    'صحرا',
+                    'ساحل',
+                    'قایق',
+                    'باران'
+                ],
+                correctIndex: 0,
+                note: '«دریا» و «صحرا» از زیباترین جفت‌های قافیه در طبیعت‌سرایی شعر فارسی‌اند.'
+            },
+            {
+                type: 'rhyme',
+                categoryLabel: '🎶 قافیه‌سنجی',
+                instruction: 'کدام واژه با «نگار» هم‌قافیه است؟',
+                question: 'خوشا فصلِ نوروز و عطرِ «نگار» ...',
+                options: [
+                    'بهار',
+                    'لاله',
+                    'نسیم',
+                    'سبزه'
+                ],
+                correctIndex: 0,
+                note: '«نگار» و «بهار» در حرف روی «ر» و مصوت پیش از آن کاملاً هم‌قافیه‌اند.'
+            }
+        ];
+
+        // ==================== متغیرهای وضعیت بازی ====================
+        let selectedMode = 'all';
+        let questionPool = [];
+        let currentQuestion = null;
+        let currentShuffledOptions = [];
+        let correctOptionIdx = -1;
+
+        let score = 0;
+        let highScore = 0;
+        let lives = 3;
+        let combo = 0;
+        let correctAnswersCount = 0;
+        let isAnswered = false;
+
+        // متغیرهای تایمر
+        let timerInterval = null;
+        let maxTime = 15; // ثانیه اولیه
+        let timeLeft = 15;
+
+        // تنظیمات صدا
+        let soundEnabled = true;
+        let synth = null;
+
+        // ==================== تبدیل اعداد انگلیسی به فارسی ====================
+        function toPersianDigits(num) {
+            const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            return num.toString().replace(/\d/g, x => persianDigits[x]);
+        }
+
+        // ==================== سیستم افکت‌های صوتی ملایم با Tone.js ====================
+        function initAudio() {
+            try {
+                if (!synth && window.Tone) {
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.02, decay: 0.15, sustain: 0.1, release: 0.4 }
+                    }).toDestination();
+                    synth.volume.value = -10;
+                }
+            } catch (e) {
+                console.warn('Audio init skipped:', e);
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!synth) return;
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                const now = Tone.now();
+                if (type === 'correct') {
+                    // ملودی شاد ایرانی (چهارمضراب کوتاه)
+                    synth.triggerAttackRelease('D4', '16n', now);
+                    synth.triggerAttackRelease('F#4', '16n', now + 0.08);
+                    synth.triggerAttackRelease('A4', '8n', now + 0.16);
+                } else if (type === 'wrong') {
+                    synth.triggerAttackRelease('Eb3', '8n', now);
+                    synth.triggerAttackRelease('D3', '4n', now + 0.12);
+                } else if (type === 'click') {
+                    synth.triggerAttackRelease('A4', '32n', now);
+                } else if (type === 'gameover') {
+                    synth.triggerAttackRelease('A3', '8n', now);
+                    synth.triggerAttackRelease('G3', '8n', now + 0.15);
+                    synth.triggerAttackRelease('F#3', '4n', now + 0.30);
+                }
+            } catch (err) {
+                // جلوگیری از توقف بازی در صورت خطای صوتی مرورگر
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const iconEl = document.getElementById('sound-icon');
+            const textEl = document.getElementById('sound-text');
+            if (soundEnabled) {
+                iconEl.textContent = '🔊';
+                textEl.textContent = 'صدا روشن';
+                playSound('click');
+            } else {
+                iconEl.textContent = '🔇';
+                textEl.textContent = 'صدا خاموش';
+            }
+        }
+
+        // ==================== مدیریت رکورد در localStorage ====================
+        function loadHighScore() {
+            try {
+                const saved = localStorage.getItem('shekarestan_adab_highscore');
+                highScore = saved ? parseInt(saved, 10) : 0;
+                if (isNaN(highScore)) highScore = 0;
+            } catch (e) {
+                highScore = 0;
+            }
+            document.getElementById('start-high-score').textContent = `${toPersianDigits(highScore)} امتیاز`;
+        }
+
+        function saveHighScore(newScore) {
+            if (newScore > highScore) {
+                highScore = newScore;
+                try {
+                    localStorage.setItem('shekarestan_adab_highscore', highScore.toString());
+                } catch (e) {
+                    // نادیده گرفتن خطا در حالت خصوصی مرورگر
+                }
+                return true; // رکورد جدید شکسته شد
+            }
+            return false;
+        }
+
+        // ==================== انتخاب حالت بازی در صفحه اول ====================
+        document.querySelectorAll('.mode-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                playSound('click');
+                selectedMode = btn.getAttribute('data-mode');
+                document.querySelectorAll('.mode-pill').forEach(b => {
+                    b.className = 'mode-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/80 text-slate-300 border border-slate-600 hover:border-amber-400 cursor-pointer transition';
+                });
+                btn.className = 'mode-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-teal-600 text-white border border-teal-300 shadow cursor-pointer transition';
+            });
+        });
+
+        // ==================== توابع کمکی تصادفی‌سازی ====================
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function buildQuestionPool() {
+            let filtered = QUESTIONS_DB;
+            if (selectedMode !== 'all') {
+                filtered = QUESTIONS_DB.filter(q => q.type === selectedMode);
+            }
+            questionPool = shuffleArray(filtered);
+        }
+
+        // ==================== شروع و جریان بازی ====================
+        function startGame() {
+            playSound('click');
+            score = 0;
+            lives = 3;
+            combo = 0;
+            correctAnswersCount = 0;
+            maxTime = 15;
+
+            buildQuestionPool();
+            updateHUD();
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('gameover-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            nextQuestion();
+        }
+
+        function returnToMenu() {
+            clearInterval(timerInterval);
+            playSound('click');
+            loadHighScore();
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('gameover-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+
+        // به‌روزرسانی نوار وضعیت (جان‌ها، امتیاز، زنجیره)
+        function updateHUD() {
+            document.getElementById('current-score').textContent = toPersianDigits(score);
+            document.getElementById('combo-count').textContent = toPersianDigits(combo);
+
+            // رندر کردن ۳ انار طلایی/قرمز به عنوان جان
+            const livesContainer = document.getElementById('lives-container');
+            livesContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const span = document.createElement('span');
+                if (i < lives) {
+                    span.textContent = '🍎'; // نماد انار سرخ و شاداب
+                    span.className = 'transition-transform duration-300 scale-100';
+                } else {
+                    span.textContent = '🤍';
+                    span.className = 'opacity-40 scale-90 transition-all duration-300';
+                }
+                livesContainer.appendChild(span);
+            }
+
+            // افکت بزرگ شدن نشان زنجیره در کمبوهای بالا
+            const comboBadge = document.getElementById('combo-badge');
+            if (combo >= 2) {
+                comboBadge.classList.add('ring-2', 'ring-amber-400', 'scale-105');
+            } else {
+                comboBadge.classList.remove('ring-2', 'ring-amber-400', 'scale-105');
+            }
+        }
+
+        // بارگذاری سوال بعدی
+        function nextQuestion() {
+            clearInterval(timerInterval);
+            isAnswered = false;
+
+            // مخفی کردن کادر بازخورد قبلی
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.classList.add('hidden');
+
+            // اگر مخزن سوالات تمام شد، دوباره بدون تکرار اخیر پر شود
+            if (questionPool.length === 0) {
+                buildQuestionPool();
+            }
+
+            currentQuestion = questionPool.pop();
+
+            // نمایش دسته‌بندی و متن سوال
+            document.getElementById('question-category-badge').textContent = currentQuestion.categoryLabel;
+            document.getElementById('question-instruction').textContent = currentQuestion.instruction;
+            document.getElementById('question-text').textContent = currentQuestion.question;
+
+            // بُر زدن ترتیب گزینه‌ها برای جلوگیری از تکراری بودن جای پاسخ درست
+            const correctText = currentQuestion.options[currentQuestion.correctIndex];
+            currentShuffledOptions = shuffleArray(currentQuestion.options);
+            correctOptionIdx = currentShuffledOptions.indexOf(correctText);
+
+            // ساخت دکمه‌های گزینه
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const persianLetters = ['الف', 'ب', 'ج', 'د'];
+            currentShuffledOptions.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'option-btn w-full text-right p-4 rounded-2xl flex items-center gap-3 cursor-pointer text-sm sm:text-base font-semibold text-amber-50';
+                btn.innerHTML = `
+                    <span class="w-7 h-7 shrink-0 rounded-full bg-teal-500/20 border border-teal-400/40 text-amber-300 flex items-center justify-center text-xs font-bold">
+                        ${persianLetters[idx]}
+                    </span>
+                    <span class="leading-relaxed">${optText}</span>
+                `;
+                btn.onclick = () => handleAnswer(idx);
+                optionsContainer.appendChild(btn);
+            });
+
+            // تنظیم زمان سوال (با بالا رفتن امتیاز کمی چالش‌برانگیزتر می‌شود، حداقل ۸ ثانیه)
+            const speedReduction = Math.min(7, Math.floor(score / 150));
+            maxTime = Math.max(8, 15 - speedReduction);
+            startTimer();
+        }
+
+        // شروع شمارش معکوس تایمر
+        function startTimer() {
+            timeLeft = maxTime;
+            updateTimerUI();
+
+            const step = 0.1; // به‌روزرسانی هر ۱۰۰ میلی‌ثانیه
+            timerInterval = setInterval(() => {
+                if (isAnswered) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+                timeLeft = Math.max(0, +(timeLeft - step).toFixed(1));
+                updateTimerUI();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeOut();
+                }
+            }, 100);
+        }
+
+        function updateTimerUI() {
+            const pct = (timeLeft / maxTime) * 100;
+            const bar = document.getElementById('timer-bar');
+            bar.style.width = `${pct}%`;
+            document.getElementById('timer-seconds').textContent = toPersianDigits(Math.ceil(timeLeft));
+        }
+
+        // بررسی پاسخ کاربر
+        function handleAnswer(selectedIndex) {
+            if (isAnswered) return;
+            isAnswered = true;
+            clearInterval(timerInterval);
+
+            const buttons = document.getElementById('options-container').querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+
+            const isCorrect = selectedIndex === correctOptionIdx;
+
+            if (isCorrect) {
+                buttons[selectedIndex].classList.add('option-correct');
+                combo++;
+                correctAnswersCount++;
+
+                // محاسبه امتیاز: پایه ۲۰ + پاداش سرعت + پاداش زنجیره (Combo)
+                const timeBonus = Math.ceil(timeLeft) * 2;
+                const comboBonus = (combo - 1) * 5;
+                const earned = 20 + timeBonus + comboBonus;
+                score += earned;
+
+                playSound('correct');
+                showFeedback(
+                    true,
+                    `✨ آفرین! +${toPersianDigits(earned)} امتیاز ${combo > 1 ? `(زنجیره ×${toPersianDigits(combo)})` : ''}`,
+                    currentQuestion.note
+                );
+            } else {
+                buttons[selectedIndex].classList.add('option-wrong');
+                buttons[correctOptionIdx].classList.add('option-correct');
+                combo = 0;
+                lives--;
+
+                playSound('wrong');
+                showFeedback(
+                    false,
+                    '❌ پاسخ نادرست بود! گزینه سبز پاسخ صحیح است.',
+                    currentQuestion.note
+                );
+            }
+
+            updateHUD();
+        }
+
+        // اتمام زمان سوال
+        function handleTimeOut() {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const buttons = document.getElementById('options-container').querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+            buttons[correctOptionIdx].classList.add('option-correct');
+
+            combo = 0;
+            lives--;
+            playSound('wrong');
+            updateHUD();
+
+            showFeedback(
+                false,
+                '⏳ زمان به پایان رسید! گزینه سبز پاسخ صحیح بود.',
+                currentQuestion.note
+            );
+        }
+
+        // نمایش کادر بازخورد و توضیح ادبی
+        function showFeedback(isSuccess, titleText, noteText) {
+            const box = document.getElementById('feedback-box');
+            const titleEl = document.getElementById('feedback-title');
+            const noteEl = document.getElementById('feedback-note');
+            const nextBtn = document.getElementById('next-btn');
+
+            box.classList.remove('hidden', 'bg-emerald-950/80', 'border-emerald-400/50', 'bg-rose-950/80', 'border-rose-400/50');
+
+            if (isSuccess) {
+                box.classList.add('bg-emerald-950/85', 'border-emerald-400/60');
+                titleEl.className = 'font-extrabold text-sm sm:text-base mb-1 text-emerald-300';
+            } else {
+                box.classList.add('bg-rose-950/85', 'border-rose-400/60');
+                titleEl.className = 'font-extrabold text-sm sm:text-base mb-1 text-rose-300';
+            }
+
+            titleEl.textContent = titleText;
+            noteEl.textContent = noteText;
+
+            // اگر جان‌ها تمام شده باشد، دکمه بعدی به «مشاهده نتیجه» تغییر می‌کند
+            if (lives <= 0) {
+                nextBtn.textContent = 'مشاهده نتیجه 🏁';
+                nextBtn.onclick = endGame;
+            } else {
+                nextBtn.textContent = 'سوال بعدی ◀';
+                nextBtn.onclick = nextQuestion;
+            }
+        }
+
+        // پایان بازی و نمایش صفحه امتیاز نهایی
+        function endGame() {
+            clearInterval(timerInterval);
+            playSound('gameover');
+
+            const isNewRecord = saveHighScore(score);
+
+            document.getElementById('final-score').textContent = toPersianDigits(score);
+            document.getElementById('final-high-score').textContent = toPersianDigits(highScore);
+            document.getElementById('final-correct-count').textContent = toPersianDigits(correctAnswersCount);
+
+            const recordBanner = document.getElementById('new-record-banner');
+            if (isNewRecord && score > 0) {
+                recordBanner.classList.remove('hidden');
+            } else {
+                recordBanner.classList.add('hidden');
+            }
+
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('gameover-screen').classList.remove('hidden');
+        }
+
+        // مقداردهی اولیه هنگام بارگذاری صفحه
+        window.onload = function () {
+            loadHighScore();
+        };
+    </script>
+</body>
+</html>
